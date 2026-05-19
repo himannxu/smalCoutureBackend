@@ -23,9 +23,6 @@ uploads/
 # Temporary DB migration dumps
 .mongo-migrate-dump/
 
-# Cloudinary → server URL migration cache
-.cloudinary-url-map.json
-
 # Runtime / coverage
 coverage/
 .nyc_output/

@@ -58,4 +58,12 @@ for (const rel of COPY_PATHS) {
   copyRecursive(src, path.join(OUT, rel));
 }
 
+const mapSrc = path.join(ROOT, ".cloudinary-url-map.json");
+if (fs.existsSync(mapSrc)) {
+  fs.copyFileSync(mapSrc, path.join(OUT, ".cloudinary-url-map.json"));
+  console.log("Included .cloudinary-url-map.json for auto upload sync on start");
+} else {
+  console.warn("No .cloudinary-url-map.json — run migrate:cloudinary once locally, then commit the file");
+}
+
 console.log(`Deploy build ready at ${OUT}`);

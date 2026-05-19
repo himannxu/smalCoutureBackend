@@ -197,6 +197,7 @@ app.post("/api/payment-events/list", async (req, res) => {
 });
 
 const { createMixMatchLookModel, registerMixMatchRoutes } = require("./routes/mixmatch");
+const { ensureUploadFilesAsync } = require("./utils/ensure-upload-files");
 const MixMatchLook = createMixMatchLookModel(mongoose);
 
 // ─── JWT & Mail helpers ────────────────────────────────────────────────────
@@ -6360,9 +6361,17 @@ async function start() {
       console.log("MongoDB connected");
       await seedAdmin();
       // await seedShirtSubcategories();
+      ensureUploadFilesAsync({
+        uploadDir: UPLOAD_DIR,
+        db: mongoose.connection.db,
+      }).catch((err) => console.error("[uploads] background sync failed:", err.message));
     } catch (err) {
       console.error("Failed to connect to MongoDB. Continuing without DB.", err);
     }
+  } else {
+    ensureUploadFilesAsync({ uploadDir: UPLOAD_DIR, db: null }).catch((err) =>
+      console.error("[uploads] background sync failed:", err.message),
+    );
   }
 
   // Start the Express server regardless of MongoDB connection status
