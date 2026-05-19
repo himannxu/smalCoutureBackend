@@ -2,7 +2,12 @@
 node_modules/
 
 # Environment variables (secrets)
+.env
+.env.*
+!.env.example
 
+# CI deploy bundle on server (optional local test)
+deploy-bundle/
 
 # Logs
 logs/

@@ -1,0 +1,48 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+
+      - name: Create deploy build folder
+        run: npm run build:deploy
+
+      - name: Upload deploy bundle to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          source: "build,Dockerfile,deploy.sh"
+          target: "${{ secrets.DEPLOY_PATH || '/home/smalcouture/websiteBackend' }}/deploy-bundle"
+          strip_components: 0
+          overwrite: true
+
+      - name: Build image and restart backend-container
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          script: |
+            export APP_DIR="${{ secrets.DEPLOY_PATH || '/home/smalcouture/websiteBackend' }}"
+            export BUNDLE_DIR="$APP_DIR/deploy-bundle"
+            bash "$BUNDLE_DIR/deploy.sh"

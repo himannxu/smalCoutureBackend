@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "build:deploy": "node scripts/prepare-build.js",
     "migrate:cloudinary": "node scripts/migrate-cloudinary-urls.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+
+.git
+.github
+uploads
+build
+.mongo-migrate-dump
+.cloudinary-url-map.json
+*.log
+.DS_Store
+index copy.js
+Untitled
+README.md
+scripts
