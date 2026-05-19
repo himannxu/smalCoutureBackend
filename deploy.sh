@@ -17,8 +17,8 @@ cd "$APP_DIR"
 
 if [ -d "$BUNDLE_DIR/build" ]; then
   echo "Applying deploy bundle from CI..."
-  mkdir -p "$APP_DIR/build"
-  rsync -a --delete "$BUNDLE_DIR/build/" "$APP_DIR/build/"
+  rm -rf "$APP_DIR/build"
+  cp -a "$BUNDLE_DIR/build" "$APP_DIR/build"
   cp -f "$BUNDLE_DIR/Dockerfile" "$APP_DIR/Dockerfile"
   cp -f "$BUNDLE_DIR/deploy.sh" "$APP_DIR/deploy.sh"
   chmod +x "$APP_DIR/deploy.sh"
