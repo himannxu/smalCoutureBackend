@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Environment variables (secrets)
+
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Uploaded images (served from /uploads)
+uploads/
+
+# Temporary DB migration dumps
+.mongo-migrate-dump/
+
+# Cloudinary → server URL migration cache
+.cloudinary-url-map.json
+
+# Runtime / coverage
+coverage/
+.nyc_output/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Optional local tooling
+.cache/
+.eslintcache
