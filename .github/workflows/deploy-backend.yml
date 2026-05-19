@@ -9,10 +9,37 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      # Matches your GitHub secrets: HOST, USERNAME, SSH_KEY
+      DEPLOY_HOST: ${{ secrets.HOST || secrets.SSH_HOST }}
+      DEPLOY_USER: ${{ secrets.USERNAME || secrets.SSH_USER || secrets.SSH_USERNAME }}
+      DEPLOY_KEY: ${{ secrets.SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.PRIVATE_KEY }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/home/smalcouture/websiteBackend' }}
+      DEPLOY_PORT: ${{ secrets.SSH_PORT || '22' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify SSH secrets (before deploy)
+        run: |
+          missing=0
+          if [ -z "$DEPLOY_HOST" ]; then
+            echo "::error::Missing secret HOST (your VM IP address)"
+            missing=1
+          fi
+          if [ -z "$DEPLOY_USER" ]; then
+            echo "::error::Missing secret USERNAME (e.g. smalcouture)"
+            missing=1
+          fi
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::Missing secret SSH_KEY — paste your full private key (PEM)"
+            missing=1
+          elif ! printf '%s' "$DEPLOY_KEY" | grep -q 'BEGIN.*PRIVATE KEY'; then
+            echo "::error::SSH_KEY must be the PRIVATE key (-----BEGIN ... PRIVATE KEY-----), not the .pub file"
+            missing=1
+          fi
+          exit $missing
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -26,23 +53,23 @@ jobs:
       - name: Upload deploy bundle to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || '22' }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ env.DEPLOY_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
           source: "build,Dockerfile,deploy.sh"
-          target: "${{ secrets.DEPLOY_PATH || '/home/smalcouture/websiteBackend' }}/deploy-bundle"
+          target: "${{ env.DEPLOY_PATH }}/deploy-bundle"
           strip_components: 0
           overwrite: true
 
       - name: Build image and restart backend-container
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || '22' }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ env.DEPLOY_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
           script: |
-            export APP_DIR="${{ secrets.DEPLOY_PATH || '/home/smalcouture/websiteBackend' }}"
+            export APP_DIR="${{ env.DEPLOY_PATH }}"
             export BUNDLE_DIR="$APP_DIR/deploy-bundle"
             bash "$BUNDLE_DIR/deploy.sh"
