@@ -6368,10 +6368,6 @@ async function start() {
     } catch (err) {
       console.error("Failed to connect to MongoDB. Continuing without DB.", err);
     }
-  } else {
-    ensureUploadFilesAsync({ uploadDir: UPLOAD_DIR, db: null }).catch((err) =>
-      console.error("[uploads] background sync failed:", err.message),
-    );
   }
 
   // Start the Express server regardless of MongoDB connection status
