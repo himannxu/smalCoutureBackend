@@ -129,6 +129,69 @@ app.post("/api/verify-payment", (req, res) => {
     if (expected !== razorpay_signature) {
       return res.status(400).json({ ok: false, error: "Invalid signature" });
     }
+    // Meta (Facebook) Conversions API - Prepaid Purchase Tracking
+        try {
+            const fbAccessToken = process.env.FB_ACCESS_TOKEN;
+            const pixelId = "// Meta (Facebook) Conversions API - Prepaid Purchase Tracking
+        try {
+            const fbAccessToken = process.env.FB_ACCESS_TOKEN;
+            const pixelId = "1609839080107013"; 
+
+            if (fbAccessToken && razorpay_order_id) {
+                fetch(`https://graph.facebook.com/v19.0/${pixelId}/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: [{
+                            event_name: 'Purchase',
+                            event_time: Math.floor(Date.now() / 1000),
+                            event_id: razorpay_order_id, // Is dynamic ID se deduplication automatic ho jayegi
+                            action_source: 'website',
+                            user_data: {
+                                client_user_agent: req.headers['user-agent'],
+                                client_ip_address: req.ip
+                            },
+                            custom_data: {
+                                currency: 'INR',
+                                value: Number(req.body.amount || 0) / 100 
+                            }
+                        }],
+                        access_token: fbAccessToken
+                    })
+                }).catch(err => console.error("FB Fetch Link Error:", err));
+                console.log("Meta Online Purchase Event Processed for ID:", razorpay_order_id);
+            }
+        } catch (metaErr) {
+            console.error("Meta Event Error:", metaErr);
+        }"; 
+
+            if (fbAccessToken && razorpay_order_id) {
+                fetch(`https://graph.facebook.com/v19.0/${pixelId}/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: [{
+                            event_name: 'Purchase',
+                            event_time: Math.floor(Date.now() / 1000),
+                            event_id: razorpay_order_id, // Is dynamic ID se deduplication automatic ho jayegi
+                            action_source: 'website',
+                            user_data: {
+                                client_user_agent: req.headers['user-agent'],
+                                client_ip_address: req.ip
+                            },
+                            custom_data: {
+                                currency: 'INR',
+                                value: Number(req.body.amount || 0) / 100 
+                            }
+                        }],
+                        access_token: fbAccessToken
+                    })
+                }).catch(err => console.error("FB Fetch Link Error:", err));
+                console.log("Meta Online Purchase Event Processed for ID:", razorpay_order_id);
+            }
+        } catch (metaErr) {
+            console.error("Meta Event Error:", metaErr);
+        }
 
     return res.json({ ok: true });
   } catch (err) {
@@ -170,6 +233,36 @@ app.post("/api/payment-events/log", async (req, res) => {
       reason,
       meta,
     });
+    // Meta (Facebook) Conversions API - COD Purchase Tracking
+    if (body.provider === 'cod' && status === 'success') {
+        try {
+            const pixelId = "1609839080107013"; // <-- Apna original Pixel ID yahan copy-paste kar lijiye
+            fetch(`https://graph.facebook.com/v19.0/${pixelId}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: [{
+                        event_name: 'Purchase',
+                        event_time: Math.floor(Date.now() / 1000),
+                        event_id: razorpayOrderId || String(body.userId + Date.now()), 
+                        action_source: 'website',
+                        user_data: {
+                            client_user_agent: req.headers['user-agent'],
+                            client_ip_address: req.ip
+                        },
+                        custom_data: {
+                            currency: 'INR',
+                            value: Number(amount || 0)
+                        }
+                    }],
+                    access_token: process.env.FB_ACCESS_TOKEN
+                })
+            }).catch(err => console.error("FB COD Link Error:", err));
+            console.log("Meta COD Purchase Event Processed successfully!");
+        } catch (codFbErr) {
+            console.error("COD Meta Error:", codFbErr);
+        }
+    }
 
     return res.status(201).json({ ok: true, item: doc.toObject() });
   } catch (err) {
